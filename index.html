@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjana Salinan Iklan AI 📝</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Penjana Salinan Iklan AI</h1>
+            <button id="settingsBtn" class="settings-btn">⚙️ Tetapan</button>
+        </div>
+        
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <h2>⚙️ Tetapan</h2>
+                <div class="settings-form">
+                    <label for="apiKey">Kunci API OpenRouter:</label>
+                    <div class="api-key-input">
+                        <input type="password" id="apiKey" placeholder="Masukkan kunci API anda">
+                        <button id="toggleApiKey" class="toggle-btn">👁️</button>
+                    </div>
+                    <p class="api-key-help">
+                        Belum ada kunci API? 
+                        <a href="https://openrouter.ai/keys" target="_blank">Dapatkan di sini</a>
+                    </p>
+                    <div class="modal-buttons">
+                        <button id="saveSettings" class="save-btn">Simpan Tetapan</button>
+                        <button id="closeModal" class="close-btn">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label for="product">Apakah produk atau perkhidmatan anda?</label>
+            <input type="text" id="product" placeholder="contoh: Kelas Yoga, Pembuat Kopi, Perkhidmatan Reka Bentuk Web">
+            <button id="generateBtn">Jana Salinan Iklan ✨</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Sedang menjana salinan iklan yang menarik... 🤖</p>
+        </div>
+
+        <div class="output-section" id="outputSection">
+            <div class="copy-element">
+                <h2>📢 Tajuk Utama</h2>
+                <p id="headline"></p>
+            </div>
+
+            <div class="copy-element">
+                <h2>😟 Masalah</h2>
+                <p id="problem"></p>
+            </div>
+
+            <div class="copy-element">
+                <h2>✅ Penyelesaian</h2>
+                <p id="solution"></p>
+            </div>
+
+            <div class="copy-element">
+                <h2>🎯 Faedah</h2>
+                <ul id="benefits"></ul>
+            </div>
+
+            <div class="copy-element">
+                <h2>🎁 Tawaran</h2>
+                <p id="offer"></p>
+            </div>
+
+            <div class="copy-element">
+                <h2>🔥 Seruan Tindakan</h2>
+                <p id="cta"></p>
+            </div>
+
+            <button id="copyBtn" class="copy-button">Salin Semua Teks 📋</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
