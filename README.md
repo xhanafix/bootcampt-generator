@@ -1,73 +1,74 @@
 # AI Ad Copy Generator 📝
 
-## Description
-AI Ad Copy Generator is a web-based tool that generates compelling advertising copy in Bahasa Malaysia using AI technology. The application uses OpenRouter API to create structured ad copies following the AIDA (Attention, Interest, Desire, Action) framework.
+A modern, dark-themed web application that generates compelling ad copy using OpenRouter's AI models. Built with vanilla JavaScript, HTML, and CSS.
 
-## Features
-- 📢 Generates complete ad copy with:
+## Features ✨
+
+- **AI-Powered Copy Generation**: Uses OpenRouter's meta-llama model to create professional ad copy
+- **Bilingual Support**: Supports both English 🇬🇧 and Bahasa Malaysia 🇲🇾
+- **Dark Theme**: Modern dark theme for better readability
+- **Structured Output**: Generates:
   - Attention-grabbing headlines
   - Problem identification
   - Solution presentation
-  - Key benefits
-  - Special offers
-  - Call to action
-- 🔄 Real-time generation
-- 📋 One-click copy functionality
-- 🔒 Secure API key management
-- 🌐 Full Bahasa Malaysia interface
+  - Key benefits (bullet points)
+  - Special offers (3 bullet points)
+  - Strong call-to-action
+- **Copy to Clipboard**: One-click copying of generated content
+- **Rate Limit Handling**: Clear feedback for API usage limits
+- **Cooldown Timer**: 1-minute cooldown between generations
+- **Responsive Design**: Works on both desktop and mobile devices
 
-## Tech Stack
-- HTML5
-- CSS3
-- JavaScript (ES6+)
-- OpenRouter API
+## Setup 🚀
 
-## Installation
-1. Clone the repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ai-ad-copy-generator.git
+git clone https://github.com/xhanafix/bootcampt-generator.git
 ```
 
-2. Install dependencies
-```bash
-npm install
-```
+2. Open `index.html` in your web browser
 
-3. Create a `.env` file and add your OpenRouter API key
-```bash
-OPENROUTER_API_KEY=your_api_key_here
-```
+3. Get your API key from [OpenRouter](https://openrouter.ai/keys)
 
-4. Start the server
-```bash
-npm start
-```
+4. Enter your API key in the settings panel
 
-## Usage
-1. Enter your OpenRouter API key in the settings
-2. Input your product or service name
-3. Click "Jana Salinan Iklan ✨"
-4. Review the generated copy
-5. Use the copy button to copy all text
+## Usage 💡
 
-## Security
-- API keys are stored in browser's local storage
-- Server-side implementation available for production use
-- Basic authentication and rate limiting included
+1. Click the ⚙️ Settings button to enter your OpenRouter API key
+2. Select your preferred language (English/Bahasa Malaysia)
+3. Enter your product or service in the input field
+4. Click "Generate Ad Copy" to create your ad
+5. Wait for the cooldown period (1 minute) between generations
+6. Use the "Copy All Text" button to copy the generated content
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+## Technical Details 🔧
 
-## License
-Copyright © 2024 [Your Name]. All rights reserved.
+- **API**: OpenRouter API with meta-llama/llama-3.1-405b-instruct model
+- **Storage**: Uses localStorage for API key persistence
+- **Error Handling**: 
+  - API rate limits
+  - Network timeouts
+  - Invalid responses
+- **Timeout**: 60-second API request timeout
+- **Cooldown**: 60-second cooldown between generations
 
-This project and its contents are protected under international copyright laws. No part of this project may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the copyright holder, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law.
+## Security Note 🔒
 
-## Contact
-- Website: [your-website.com](https://your-website.com)
-- Email: your.email@example.com
-- Twitter: [@yourhandle](https://twitter.com/yourhandle)
+The API key is stored in the browser's localStorage. While convenient, this is not 100% secure. For production use, consider implementing server-side storage and API key management.
 
-## Acknowledgments
-- OpenRouter API for providing the AI capabilities
-- All contributors who have helped with the project
+## Contributing 🤝
+
+Feel free to submit issues and pull requests.
+
+## License 📄
+
+MIT License
+
+## Author 👨‍💻
+
+Created by [xhanafix](https://github.com/xhanafix)
+
+## Acknowledgments 🙏
+
+- OpenRouter for providing the AI API
+- All contributors and users of this tool 
