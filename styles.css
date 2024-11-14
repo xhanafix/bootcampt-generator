@@ -4,11 +4,23 @@
     box-sizing: border-box;
 }
 
+:root {
+    --bg-color: #1a202c;
+    --text-color: #ffffff;
+    --card-bg: #2d3748;
+    --border-color: #4a5568;
+    --button-bg: #4299e1;
+    --button-hover: #2b6cb0;
+    --heading-color: #e2e8f0;
+    --text-muted: #a0aec0;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    background-color: #f5f7fa;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100%;
 }
 
 .container {
@@ -19,12 +31,12 @@ body {
 
 h1 {
     text-align: center;
-    color: #2d3748;
+    color: var(--heading-color);
     margin-bottom: 2rem;
 }
 
 .input-section {
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -40,10 +52,12 @@ label {
 input[type="text"] {
     width: 100%;
     padding: 0.8rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     margin-bottom: 1rem;
     font-size: 1rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 button {
@@ -87,7 +101,7 @@ button:hover {
 }
 
 .copy-element {
-    background: white;
+    background: var(--card-bg);
     padding: 1.5rem;
     border-radius: 10px;
     margin-bottom: 1.5rem;
@@ -95,13 +109,13 @@ button:hover {
 }
 
 .copy-element h2 {
-    color: #2d3748;
+    color: var(--heading-color);
     margin-bottom: 1rem;
     font-size: 1.25rem;
 }
 
 .copy-element p, .copy-element ul {
-    color: #4a5568;
+    color: var(--text-color);
 }
 
 .copy-element ul {
@@ -149,7 +163,7 @@ button:hover {
 
 .modal-content {
     position: relative;
-    background-color: white;
+    background-color: var(--card-bg);
     margin: 15% auto;
     padding: 2rem;
     border-radius: 10px;
@@ -178,7 +192,7 @@ button:hover {
 
 .api-key-help {
     font-size: 0.9rem;
-    color: #718096;
+    color: var(--text-muted);
     margin-bottom: 1.5rem;
 }
 
@@ -236,13 +250,59 @@ button:hover {
 .language-select {
     padding: 0.5rem;
     border-radius: 5px;
-    border: 1px solid #e2e8f0;
-    background-color: white;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
     font-size: 0.9rem;
     cursor: pointer;
+    color: var(--text-color);
 }
 
 .language-select:focus {
     outline: none;
     border-color: #4299e1;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer a {
+    color: var(--button-bg);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+button:disabled {
+    background-color: #718096;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+button:disabled:hover {
+    background-color: #718096;
+}
+
+#generateBtn {
+    min-width: 200px; /* Prevent button size changes during countdown */
+}
+
+[data-theme="dark"] .modal {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .spinner {
+    border-color: #2d3748;
+    border-top-color: #4299e1;
+}
+
+[data-theme="dark"] .error-message {
+    background-color: #742a2a;
+    border-color: #9b2c2c;
+    color: #fff;
 } 

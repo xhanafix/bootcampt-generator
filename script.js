@@ -51,8 +51,6 @@ window.addEventListener('click', (event) => {
     }
 });
 
-const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-
 const generateBtn = document.getElementById('generateBtn');
 const copyBtn = document.getElementById('copyBtn');
 const loading = document.getElementById('loading');
@@ -85,7 +83,12 @@ const translations = {
             noProduct: 'Sila masukkan produk atau perkhidmatan!',
             parseError: 'Gagal menganalisis kandungan yang dijana',
             apiError: 'Ralat API:',
-            defaultError: 'Ralat tidak dijangka berlaku'
+            defaultError: 'Ralat tidak dijangka berlaku',
+            rateLimit: 'Had penggunaan harian telah dicapai. Sila cuba lagi esok atau naik taraf ke pelan berbayar.'
+        },
+        cooldown: {
+            wait: 'Sila tunggu %ss...',
+            ready: 'Jana Salinan Iklan ✨'
         }
     },
     en: {
@@ -113,7 +116,12 @@ const translations = {
             noProduct: 'Please enter a product or service!',
             parseError: 'Failed to parse the generated content',
             apiError: 'API Error:',
-            defaultError: 'An unexpected error occurred'
+            defaultError: 'An unexpected error occurred',
+            rateLimit: 'Daily usage limit reached. Please try again tomorrow or upgrade to a paid plan.'
+        },
+        cooldown: {
+            wait: 'Please wait %ss...',
+            ready: 'Generate Ad Copy ✨'
         }
     }
 };
@@ -148,10 +156,44 @@ function updateUILanguage(lang) {
 }
 
 languageSelect.addEventListener('change', (e) => {
-    updateUILanguage(e.target.value);
+    currentLanguage = e.target.value;
+    updateUILanguage(currentLanguage);
+    
+    // Update button text if in cooldown
+    if (generateBtn.disabled) {
+        const timeLeft = parseInt(generateBtn.textContent.match(/\d+/)[0]);
+        generateBtn.textContent = currentLanguage === 'ms' ? 
+            `Sila tunggu ${timeLeft}s...` :
+            `Please wait ${timeLeft}s...`;
+    }
 });
 
-// Modify the generateAdCopy function to use the selected language
+// Add this timeout utility function at the top of the file
+const fetchWithTimeout = async (resource, options = {}) => {
+    const { timeout = 30000 } = options; // Default timeout of 30 seconds
+    
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        if (error.name === 'AbortError') {
+            throw new Error(currentLanguage === 'ms' ? 
+                'Permintaan tamat masa. Sila cuba lagi.' : 
+                'Request timed out. Please try again.');
+        }
+        throw error;
+    }
+};
+
+// Update the generateAdCopy function to use the timeout
 async function generateAdCopy(product) {
     const t = translations[currentLanguage];
     const prompt = currentLanguage === 'ms' ? 
@@ -164,7 +206,10 @@ Faedah:
 - [Faedah utama 1]
 - [Faedah utama 2]
 - [Faedah utama 3]
-Tawaran: [Berikan tawaran yang menarik]
+Tawaran:
+- [Tawaran menarik 1]
+- [Tawaran menarik 2]
+- [Tawaran menarik 3]
 Seruan Tindakan: [Tambah seruan tindakan yang kuat]` :
         `Create a compelling ad copy for ${product} using the EXACT format below in English:
 
@@ -175,40 +220,53 @@ Benefits:
 - [Key benefit 1]
 - [Key benefit 2]
 - [Key benefit 3]
-Offer: [Present an irresistible offer]
+Offer:
+- [Compelling offer point 1]
+- [Compelling offer point 2]
+- [Compelling offer point 3]
 Call to Action: [Add a strong call to action]`;
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
+        const response = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`,
-                'HTTP-Referer': 'https://openrouter.ai/docs',
-                'X-Title': 'AI Ad Copy Generator'
+                "Authorization": `Bearer ${API_KEY}`,
+                "HTTP-Referer": "https://openrouter.ai/docs",
+                "X-Title": "AI Ad Copy Generator",
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: 'openai/gpt-3.5-turbo',
+                model: "meta-llama/llama-3.1-405b-instruct:free",
                 messages: [{
-                    role: 'user',
+                    role: "user",
                     content: prompt
                 }],
                 temperature: 0.7,
-                max_tokens: 1000,
-                stream: false
-            })
+                max_tokens: 1000
+            }),
+            timeout: 60000 // 60 second timeout
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+            // Check specifically for rate limit error
+            if (errorData.error?.message?.toLowerCase().includes('rate limit')) {
+                throw new Error('RATE_LIMIT');
+            }
+            throw new Error(currentLanguage === 'ms' ? 
+                `Ralat API: ${errorData.error?.message || response.statusText}` :
+                `API Error: ${errorData.error?.message || response.statusText}`
+            );
         }
 
         const data = await response.json();
         console.log('API Response:', data);
 
         if (!data.choices?.[0]?.message?.content) {
-            throw new Error('Unexpected API response format');
+            throw new Error(currentLanguage === 'ms' ? 
+                'Format respons API tidak dijangka' :
+                'Unexpected API response format'
+            );
         }
 
         const content = data.choices[0].message.content;
@@ -217,7 +275,16 @@ Call to Action: [Add a strong call to action]`;
         return parseAdCopy(content);
     } catch (error) {
         console.error('API Error:', error);
-        throw new Error(`Failed to generate ad copy: ${error.message}`);
+        
+        // Handle rate limit error specifically
+        if (error.message === 'RATE_LIMIT') {
+            throw new Error(translations[currentLanguage].errors.rateLimit);
+        }
+        
+        throw new Error(currentLanguage === 'ms' ? 
+            `Gagal menjana salinan iklan: ${error.message}` :
+            `Failed to generate ad copy: ${error.message}`
+        );
     }
 }
 
@@ -228,7 +295,7 @@ function parseAdCopy(content) {
             problem: '',
             solution: '',
             benefits: [],
-            offer: '',
+            offer: [],
             cta: ''
         };
 
@@ -253,75 +320,95 @@ function parseAdCopy(content) {
                 currentSection = 'benefits';
             } else if (lowerLine.includes('tawaran:') || lowerLine.includes('offer:')) {
                 currentSection = 'offer';
-                sections.offer = line.split(/(?:tawaran:|offer:)/i)[1]?.trim() || '';
             } else if (lowerLine.includes('seruan tindakan:') || lowerLine.includes('call to action:')) {
                 currentSection = 'cta';
-                sections.cta = line.split(/(?:seruan tindakan:|call to action:)/i)[1]?.trim() || '';
+                const ctaMatch = line.match(/(?:seruan tindakan:|call to action:)(.*)/i);
+                sections.cta = ctaMatch ? ctaMatch[1].trim() : '';
             } else if (line.trim()) {
-                // Handle bullet points and content lines
                 if (currentSection === 'benefits' && 
                     (line.trim().startsWith('🔹') || 
                      line.trim().startsWith('-') || 
                      line.trim().startsWith('•') ||
                      line.trim().startsWith('✓'))) {
-                    // Clean up benefit text by removing hashtags and emojis at the end
                     let benefit = line.replace(/^[🔹\-•✓]/, '').trim();
-                    benefit = benefit.replace(/#\w+/g, '').trim(); // Remove hashtags
-                    benefit = benefit.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]\s*$/g, '').trim(); // Remove trailing emojis
+                    benefit = benefit.replace(/#\w+/g, '').trim();
+                    benefit = benefit.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]\s*$/g, '').trim();
                     if (benefit) {
                         sections.benefits.push(benefit);
                     }
-                } else if (currentSection && currentSection !== 'benefits') {
-                    // Clean up section text
-                    let text = line.trim();
-                    text = text.replace(/#\w+/g, '').trim(); // Remove hashtags
-                    sections[currentSection] += (sections[currentSection] ? ' ' : '') + text;
+                } else if (currentSection === 'offer') {
+                    let offerPoint = line.trim();
+                    offerPoint = offerPoint.replace(/^[🔹\-•✓]/, '').trim();
+                    offerPoint = offerPoint.replace(/#\w+/g, '').trim();
+                    offerPoint = offerPoint.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]\s*$/g, '').trim();
+                    if (offerPoint) {
+                        sections.offer.push(offerPoint);
+                    }
+                } else if (currentSection === 'cta' && !sections.cta) {
+                    // If CTA section is empty, use the full line
+                    sections.cta = line.trim();
                 }
             }
         }
 
-        // Clean up sections and provide defaults
-        Object.keys(sections).forEach(key => {
-            if (typeof sections[key] === 'string') {
-                // Remove hashtags and clean up trailing emojis
-                sections[key] = sections[key]
-                    .replace(/#\w+/g, '')
-                    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]\s*$/g, '')
-                    .trim();
-                
-                // Provide default values in Malay
-                if (!sections[key]) {
-                    switch(key) {
-                        case 'headline':
-                            sections[key] = 'Tajuk utama tidak disediakan';
-                            break;
-                        case 'problem':
-                            sections[key] = 'Masalah tidak dikenalpasti';
-                            break;
-                        case 'solution':
-                            sections[key] = 'Penyelesaian tidak disediakan';
-                            break;
-                        case 'offer':
-                            sections[key] = 'Tawaran tidak disediakan';
-                            break;
-                        case 'cta':
-                            sections[key] = 'Seruan tindakan tidak disediakan';
-                            break;
-                    }
-                }
-            }
-        });
+        // Provide default values for empty sections based on language
+        if (!sections.cta) {
+            sections.cta = currentLanguage === 'ms' ? 
+                'Hubungi kami sekarang untuk maklumat lanjut!' : 
+                'Contact us now for more information!';
+        }
 
-        // Ensure we have at least one benefit
+        // Rest of the function remains the same...
+        if (sections.offer.length === 0) {
+            sections.offer = currentLanguage === 'ms' ? [
+                'Diskaun istimewa untuk pendaftaran awal',
+                'Tawaran terhad',
+                'Jaminan kepuasan'
+            ] : [
+                'Special discount for early birds',
+                'Limited time offer',
+                'Satisfaction guaranteed'
+            ];
+        }
+
         if (sections.benefits.length === 0) {
-            sections.benefits = ['Tiada faedah khusus disenaraikan'];
+            sections.benefits = currentLanguage === 'ms' ? 
+                ['Tiada faedah khusus disenaraikan'] : 
+                ['No specific benefits listed'];
+        }
+
+        while (sections.offer.length < 3) {
+            sections.offer.push(currentLanguage === 'ms' ? 
+                'Tawaran masa terhad istimewa' : 
+                'Special limited time offer'
+            );
+        }
+
+        // Ensure all text sections have content
+        if (!sections.headline) {
+            sections.headline = currentLanguage === 'ms' ? 
+                'Tajuk utama tidak disediakan' : 
+                'Headline not provided';
+        }
+        if (!sections.problem) {
+            sections.problem = currentLanguage === 'ms' ? 
+                'Masalah tidak dikenalpasti' : 
+                'Problem not identified';
+        }
+        if (!sections.solution) {
+            sections.solution = currentLanguage === 'ms' ? 
+                'Penyelesaian tidak disediakan' : 
+                'Solution not provided';
         }
 
         console.log('Parsed sections:', sections);
         return sections;
     } catch (error) {
         console.error('Parsing Error:', error);
-        throw new Error('Gagal menganalisis kandungan yang dijana');
+        throw new Error(currentLanguage === 'ms' ? 
+            'Gagal menganalisis kandungan yang dijana' : 
+            'Failed to parse generated content'
+        );
     }
 }
 
@@ -338,29 +425,90 @@ function displayAdCopy(adCopy) {
         benefitsList.appendChild(li);
     });
     
-    document.getElementById('offer').textContent = adCopy.offer;
+    const offerElement = document.getElementById('offer');
+    offerElement.innerHTML = '';
+    const offerList = document.createElement('ul');
+    adCopy.offer.forEach(offerPoint => {
+        const li = document.createElement('li');
+        li.textContent = offerPoint;
+        offerList.appendChild(li);
+    });
+    offerElement.appendChild(offerList);
+    
     document.getElementById('cta').textContent = adCopy.cta;
 }
 
+// Update the showError function to handle timeout errors better
 function showError(message) {
     const t = translations[currentLanguage].errors;
-    const translatedMessage = t[message] || message;
+    let translatedMessage = t[message] || message;
+    
+    // Handle specific error types
+    if (message.includes('rate limit') || message === t.rateLimit) {
+        translatedMessage = t.rateLimit;
+    } else if (message.includes('timed out') || message.includes('tamat masa')) {
+        translatedMessage = currentLanguage === 'ms' ? 
+            'Permintaan tamat masa. Sila cuba lagi.' : 
+            'Request timed out. Please try again.';
+    }
+    
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.textContent = `⚠️ ${translatedMessage}`;
+    
+    // For rate limit errors, keep the message longer
+    const timeout = message === t.rateLimit ? 10000 : 5000;
     
     const inputSection = document.querySelector('.input-section');
     inputSection.insertBefore(errorDiv, inputSection.firstChild);
     
     setTimeout(() => {
         errorDiv.remove();
-    }, 5000);
+    }, timeout);
+    
+    // Disable the generate button for rate limit errors
+    if (message === t.rateLimit) {
+        generateBtn.disabled = true;
+        setTimeout(() => {
+            generateBtn.disabled = false;
+            generateBtn.textContent = translations[currentLanguage].generateBtn;
+        }, 60000); // Re-enable after 1 minute
+    }
 }
 
+// Add these constants at the top with other constants
+const COOLDOWN_TIME = 60; // 1 minute in seconds
+let cooldownTimer = null;
+let isGenerating = false;
+
+// Add this function to handle the cooldown timer
+function startCooldown() {
+    let timeLeft = COOLDOWN_TIME;
+    generateBtn.disabled = true;
+    
+    cooldownTimer = setInterval(() => {
+        timeLeft--;
+        generateBtn.textContent = currentLanguage === 'ms' ? 
+            `Sila tunggu ${timeLeft}s...` :
+            `Please wait ${timeLeft}s...`;
+
+        if (timeLeft <= 0) {
+            clearInterval(cooldownTimer);
+            generateBtn.disabled = false;
+            generateBtn.textContent = translations[currentLanguage].generateBtn;
+        }
+    }, 1000);
+}
+
+// Update the generateBtn click handler
 generateBtn.addEventListener('click', async () => {
     if (!API_KEY) {
         openSettings();
         showError('Please set your API key in settings first');
+        return;
+    }
+    
+    if (isGenerating) {
         return;
     }
     
@@ -370,6 +518,7 @@ generateBtn.addEventListener('click', async () => {
         return;
     }
 
+    isGenerating = true;
     loading.style.display = 'block';
     outputSection.style.display = 'none';
 
@@ -377,11 +526,15 @@ generateBtn.addEventListener('click', async () => {
         const adCopy = await generateAdCopy(product);
         displayAdCopy(adCopy);
         outputSection.style.display = 'block';
+        startCooldown(); // Start the cooldown timer after successful generation
     } catch (error) {
         showError(error.message);
         console.error('Generation Error:', error);
+        generateBtn.disabled = false;
+        generateBtn.textContent = translations[currentLanguage].generateBtn;
     } finally {
         loading.style.display = 'none';
+        isGenerating = false;
     }
 });
 
@@ -415,6 +568,18 @@ function showSecurityWarning() {
     setTimeout(() => warning.remove(), 5000);
 }
 
-// Initialize the UI with default language
-updateUILanguage(currentLanguage);
+// Update the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', () => {
+    // Existing initialization
+    currentLanguage = languageSelect.value;
+    updateUILanguage(currentLanguage);
+    
+    // Clear any existing cooldown
+    if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+    }
+    generateBtn.disabled = false;
+    generateBtn.textContent = translations[currentLanguage].generateBtn;
+});
  
