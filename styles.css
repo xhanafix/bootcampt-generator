@@ -225,4 +225,24 @@ button:hover {
 
 .input-section.error input {
     border-color: #f56565;
+}
+
+.header-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.language-select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.language-select:focus {
+    outline: none;
+    border-color: #4299e1;
 } 

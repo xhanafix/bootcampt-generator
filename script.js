@@ -58,25 +58,125 @@ const copyBtn = document.getElementById('copyBtn');
 const loading = document.getElementById('loading');
 const outputSection = document.getElementById('outputSection');
 
+// Add language translations
+const translations = {
+    ms: {
+        settings: '⚙️ Tetapan',
+        apiKeyLabel: 'Kunci API OpenRouter:',
+        apiKeyPlaceholder: 'Masukkan kunci API anda',
+        noApiKey: 'Belum ada kunci API?',
+        getApiKey: 'Dapatkan di sini',
+        saveSettings: 'Simpan Tetapan',
+        close: 'Tutup',
+        productLabel: 'Apakah produk atau perkhidmatan anda?',
+        productPlaceholder: 'contoh: Kelas Yoga, Pembuat Kopi, Perkhidmatan Reka Bentuk Web',
+        generateBtn: 'Jana Salinan Iklan ✨',
+        loading: 'Sedang menjana salinan iklan yang menarik... 🤖',
+        headline: '📢 Tajuk Utama',
+        problem: '😟 Masalah',
+        solution: '✅ Penyelesaian',
+        benefits: '🎯 Faedah',
+        offer: '🎁 Tawaran',
+        cta: '🔥 Seruan Tindakan',
+        copyBtn: 'Salin Semua Teks 📋',
+        copied: 'Disalin! 👍',
+        errors: {
+            noApiKey: 'Sila tetapkan kunci API anda dalam tetapan terlebih dahulu',
+            noProduct: 'Sila masukkan produk atau perkhidmatan!',
+            parseError: 'Gagal menganalisis kandungan yang dijana',
+            apiError: 'Ralat API:',
+            defaultError: 'Ralat tidak dijangka berlaku'
+        }
+    },
+    en: {
+        settings: '⚙️ Settings',
+        apiKeyLabel: 'OpenRouter API Key:',
+        apiKeyPlaceholder: 'Enter your API key',
+        noApiKey: "Don't have an API key?",
+        getApiKey: 'Get one here',
+        saveSettings: 'Save Settings',
+        close: 'Close',
+        productLabel: "What's your product or service?",
+        productPlaceholder: 'e.g., Yoga Classes, Coffee Maker, Web Design Services',
+        generateBtn: 'Generate Ad Copy ✨',
+        loading: 'Creating your compelling ad copy... 🤖',
+        headline: '📢 Headline',
+        problem: '😟 Problem',
+        solution: '✅ Solution',
+        benefits: '🎯 Benefits',
+        offer: '🎁 Offer',
+        cta: '🔥 Call to Action',
+        copyBtn: 'Copy All Text 📋',
+        copied: 'Copied! 👍',
+        errors: {
+            noApiKey: 'Please set your API key in settings first',
+            noProduct: 'Please enter a product or service!',
+            parseError: 'Failed to parse the generated content',
+            apiError: 'API Error:',
+            defaultError: 'An unexpected error occurred'
+        }
+    }
+};
+
+// Add language selection handling
+let currentLanguage = 'ms';
+const languageSelect = document.getElementById('languageSelect');
+
+function updateUILanguage(lang) {
+    currentLanguage = lang;
+    const t = translations[lang];
+    
+    // Update all UI elements
+    document.getElementById('settingsTitle').textContent = t.settings;
+    document.getElementById('apiKeyLabel').textContent = t.apiKeyLabel;
+    document.getElementById('apiKey').placeholder = t.apiKeyPlaceholder;
+    document.getElementById('noApiKeyText').textContent = t.noApiKey;
+    document.getElementById('getApiKeyLink').textContent = t.getApiKey;
+    document.getElementById('saveSettings').textContent = t.saveSettings;
+    document.getElementById('closeModal').textContent = t.close;
+    document.getElementById('productLabel').textContent = t.productLabel;
+    document.getElementById('product').placeholder = t.productPlaceholder;
+    document.getElementById('generateBtn').textContent = t.generateBtn;
+    document.getElementById('loadingText').textContent = t.loading;
+    document.getElementById('headlineTitle').textContent = t.headline;
+    document.getElementById('problemTitle').textContent = t.problem;
+    document.getElementById('solutionTitle').textContent = t.solution;
+    document.getElementById('benefitsTitle').textContent = t.benefits;
+    document.getElementById('offerTitle').textContent = t.offer;
+    document.getElementById('ctaTitle').textContent = t.cta;
+    document.getElementById('copyBtn').textContent = t.copyBtn;
+}
+
+languageSelect.addEventListener('change', (e) => {
+    updateUILanguage(e.target.value);
+});
+
+// Modify the generateAdCopy function to use the selected language
 async function generateAdCopy(product) {
-    const prompt = `Cipta salinan iklan yang menarik untuk ${product} menggunakan format TEPAT berikut dalam Bahasa Malaysia:
+    const t = translations[currentLanguage];
+    const prompt = currentLanguage === 'ms' ? 
+        `Cipta salinan iklan yang menarik untuk ${product} menggunakan format TEPAT berikut dalam Bahasa Malaysia:
 
 Tajuk Utama: [Tulis tajuk utama yang menarik perhatian]
-
 Masalah: [Kenalpasti masalah atau kesukaran utama]
-
 Penyelesaian: [Persembahkan penyelesaian menggunakan ${product}]
-
 Faedah:
 - [Faedah utama 1]
 - [Faedah utama 2]
 - [Faedah utama 3]
-
 Tawaran: [Berikan tawaran yang menarik]
+Seruan Tindakan: [Tambah seruan tindakan yang kuat]` :
+        `Create a compelling ad copy for ${product} using the EXACT format below in English:
 
-Seruan Tindakan: [Tambah seruan tindakan yang kuat]
-
-Buatkan ia santai, tambah emoji, dan mudah dibaca. Tulis seperti bercakap dengan kawan, tetapi KEKALKAN TAJUK BAHAGIAN yang tepat seperti di atas.`;
+Headline: [Write an attention-grabbing headline]
+Problem: [Identify the main problem or pain point]
+Solution: [Present the solution using ${product}]
+Benefits:
+- [Key benefit 1]
+- [Key benefit 2]
+- [Key benefit 3]
+Offer: [Present an irresistible offer]
+Call to Action: [Add a strong call to action]`;
 
     try {
         const response = await fetch(API_URL, {
@@ -243,20 +343,8 @@ function displayAdCopy(adCopy) {
 }
 
 function showError(message) {
-    const errorMessages = {
-        'Please set your API key in settings first': 'Sila tetapkan kunci API anda dalam tetapan terlebih dahulu',
-        'Please enter a product or service!': 'Sila masukkan produk atau perkhidmatan!',
-        'Failed to parse the generated content': 'Gagal menganalisis kandungan yang dijana',
-        'Unexpected API response format': 'Format respons API tidak dijangka',
-        'No specific benefits listed': 'Tiada faedah khusus disenaraikan',
-        'No headline provided': 'Tiada tajuk utama disediakan',
-        'No problem identified': 'Tiada masalah dikenalpasti',
-        'No solution provided': 'Tiada penyelesaian disediakan',
-        'No call to action provided': 'Tiada seruan tindakan disediakan',
-        'No specific offer provided': 'Tiada tawaran khusus disediakan'
-    };
-
-    const translatedMessage = errorMessages[message] || message;
+    const t = translations[currentLanguage].errors;
+    const translatedMessage = t[message] || message;
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.textContent = `⚠️ ${translatedMessage}`;
@@ -325,4 +413,8 @@ function showSecurityWarning() {
     `;
     document.querySelector('.input-section').prepend(warning);
     setTimeout(() => warning.remove(), 5000);
-} 
+}
+
+// Initialize the UI with default language
+updateUILanguage(currentLanguage);
+ 
