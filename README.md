@@ -1,74 +1,98 @@
 # AI Ad Copy Generator 📝
 
-A modern, dark-themed web application that generates compelling ad copy using OpenRouter's AI models. Built with vanilla JavaScript, HTML, and CSS.
+A bilingual (English/Bahasa Malaysia) web application that generates compelling ad copy using AI. The application uses the OpenRouter API to generate customized advertising content for any product or service.
 
 ## Features ✨
 
-- **AI-Powered Copy Generation**: Uses OpenRouter's meta-llama model to create professional ad copy
-- **Bilingual Support**: Supports both English 🇬🇧 and Bahasa Malaysia 🇲🇾
-- **Dark Theme**: Modern dark theme for better readability
-- **Structured Output**: Generates:
-  - Attention-grabbing headlines
-  - Problem identification
-  - Solution presentation
-  - Key benefits (bullet points)
-  - Special offers (3 bullet points)
-  - Strong call-to-action
-- **Copy to Clipboard**: One-click copying of generated content
-- **Rate Limit Handling**: Clear feedback for API usage limits
-- **Cooldown Timer**: 1-minute cooldown between generations
-- **Responsive Design**: Works on both desktop and mobile devices
+- 🌐 Bilingual support (English and Bahasa Malaysia)
+- 🤖 AI-powered ad copy generation
+- 📋 Easy copy-to-clipboard functionality
+- ⚙️ API key management
+- 🔄 Rate limiting and cooldown system
+- 🎨 Dark mode support
+- 🛡️ Error handling and retry mechanism
+
+## Structure 📂
+
+The application consists of three main files:
+- `index.html`: The main HTML structure
+- `styles.css`: CSS styling and dark mode support
+- `script.js`: Application logic and API integration
 
 ## Setup 🚀
 
-1. Clone the repository:
-```bash
-git clone https://github.com/xhanafix/bootcampt-generator.git
-```
-
-2. Open `index.html` in your web browser
-
-3. Get your API key from [OpenRouter](https://openrouter.ai/keys)
-
-4. Enter your API key in the settings panel
+1. Clone the repository
+2. Get an API key from [OpenRouter](https://openrouter.ai/keys)
+3. Open `index.html` in a web browser
+4. Click the settings button (⚙️) and enter your API key
+5. Start generating ad copy!
 
 ## Usage 💡
 
-1. Click the ⚙️ Settings button to enter your OpenRouter API key
-2. Select your preferred language (English/Bahasa Malaysia)
-3. Enter your product or service in the input field
-4. Click "Generate Ad Copy" to create your ad
-5. Wait for the cooldown period (1 minute) between generations
-6. Use the "Copy All Text" button to copy the generated content
+1. Select your preferred language (English/Bahasa Malaysia)
+2. Enter your product or service in the input field
+3. Click "Generate Ad Copy" button
+4. Wait for the AI to generate your ad copy
+5. Use the "Copy All Text" button to copy the generated content
 
-## Technical Details 🔧
+## Generated Content Structure 📑
 
-- **API**: OpenRouter API with meta-llama/llama-3.1-405b-instruct model
-- **Storage**: Uses localStorage for API key persistence
-- **Error Handling**: 
-  - API rate limits
-  - Network timeouts
-  - Invalid responses
-- **Timeout**: 60-second API request timeout
-- **Cooldown**: 60-second cooldown between generations
+The generator creates ad copy with the following sections:
+- 📢 Headline
+- 😟 Problem
+- ✅ Solution
+- 🎯 Benefits
+- 🎁 Offer
+- 🔥 Call to Action
 
-## Security Note 🔒
+## Rate Limiting 🕒
 
-The API key is stored in the browser's localStorage. While convenient, this is not 100% secure. For production use, consider implementing server-side storage and API key management.
+- Minimum interval between requests: 2 seconds
+- Daily limit: 50 requests
+- Automatic reset at midnight
+- Cooldown period after generation
+
+## Error Handling 🛠️
+
+The application handles various error scenarios:
+- Network errors
+- API rate limiting
+- Timeout issues
+- Invalid API responses
+- Content parsing errors
+
+## Browser Support 🌐
+
+Works on modern browsers including:
+- Chrome
+- Firefox
+- Safari
+- Edge
+
+## Dependencies 📦
+
+- No external libraries required
+- Uses native Browser APIs
+- Requires internet connection for API access
+
+## Security Notes 🔒
+
+- API keys are stored in browser's local storage
+- Not recommended for shared computers
+- Consider server-side implementation for production use
 
 ## Contributing 🤝
 
-Feel free to submit issues and pull requests.
+Feel free to submit issues and enhancement requests!
 
 ## License 📄
 
-MIT License
+MIT License - feel free to use and modify for your purposes!
 
-## Author 👨‍💻
+## Credits 👏
 
 Created by [xhanafix](https://github.com/xhanafix)
 
-## Acknowledgments 🙏
+---
 
-- OpenRouter for providing the AI API
-- All contributors and users of this tool 
+For more information or support, please visit the [GitHub repository](https://github.com/xhanafix/ai-ad-copy-generator).

@@ -168,33 +168,69 @@ languageSelect.addEventListener('change', (e) => {
     }
 });
 
-// Add this timeout utility function at the top of the file
-const fetchWithTimeout = async (resource, options = {}) => {
-    const { timeout = 30000 } = options; // Default timeout of 30 seconds
-    
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    
-    try {
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(id);
-        return response;
-    } catch (error) {
-        clearTimeout(id);
-        if (error.name === 'AbortError') {
-            throw new Error(currentLanguage === 'ms' ? 
-                'Permintaan tamat masa. Sila cuba lagi.' : 
-                'Request timed out. Please try again.');
-        }
-        throw error;
+// Update timeout settings
+const TIMEOUT_SETTINGS = {
+    default: 30000,    // 30 seconds
+    retry: {
+        count: 2,      // Number of retries
+        delay: 1000    // Delay between retries
     }
 };
 
-// Update the generateAdCopy function to use the timeout
+// Add retry logic to fetchWithTimeout
+async function fetchWithTimeout(resource, options = {}) {
+    const { timeout = TIMEOUT_SETTINGS.default } = options;
+    let attempts = 0;
+    
+    while (attempts < TIMEOUT_SETTINGS.retry.count) {
+        try {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(id);
+            return response;
+        } catch (error) {
+            attempts++;
+            if (attempts === TIMEOUT_SETTINGS.retry.count) {
+                throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, TIMEOUT_SETTINGS.retry.delay));
+        }
+    }
+}
+
+// Add rate limit tracking
+const RATE_LIMIT = {
+    lastRequest: 0,
+    minInterval: 2000, // Minimum 2 seconds between requests
+    dailyLimit: 50,    // Example daily limit
+    dailyCount: 0,
+    resetTime: null
+};
+
+// Update generateAdCopy function
 async function generateAdCopy(product) {
+    // Check rate limits
+    const now = Date.now();
+    if (now - RATE_LIMIT.lastRequest < RATE_LIMIT.minInterval) {
+        throw new Error(currentLanguage === 'ms' ? 
+            'Terlalu banyak permintaan. Sila tunggu sebentar.' :
+            'Too many requests. Please wait a moment.');
+    }
+    
+    if (RATE_LIMIT.dailyCount >= RATE_LIMIT.dailyLimit) {
+        const resetTime = RATE_LIMIT.resetTime || new Date(new Date().setHours(24,0,0,0));
+        throw new Error(translations[currentLanguage].errors.rateLimit);
+    }
+
+    RATE_LIMIT.lastRequest = now;
+    RATE_LIMIT.dailyCount++;
+    
     const t = translations[currentLanguage];
     const prompt = currentLanguage === 'ms' ? 
         `Cipta salinan iklan yang menarik untuk ${product} menggunakan format TEPAT berikut dalam Bahasa Malaysia:
@@ -244,43 +280,77 @@ Call to Action: [Add a strong call to action]`;
                 temperature: 0.7,
                 max_tokens: 1000
             }),
-            timeout: 60000 // 60 second timeout
+            timeout: 60000
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            // Check specifically for rate limit error
-            if (errorData.error?.message?.toLowerCase().includes('rate limit')) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('API Error Response:', errorData);
+
+            // Handle specific error cases
+            if (response.status === 429) {
                 throw new Error('RATE_LIMIT');
             }
+            
             throw new Error(currentLanguage === 'ms' ? 
                 `Ralat API: ${errorData.error?.message || response.statusText}` :
                 `API Error: ${errorData.error?.message || response.statusText}`
             );
         }
 
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
         console.log('API Response:', data);
 
-        if (!data.choices?.[0]?.message?.content) {
+        if (!data || !data.choices || !Array.isArray(data.choices) || !data.choices[0]?.message?.content) {
             throw new Error(currentLanguage === 'ms' ? 
-                'Format respons API tidak dijangka' :
-                'Unexpected API response format'
+                'Format respons API tidak lengkap atau tidak sah' :
+                'Invalid or incomplete API response format'
             );
         }
 
-        const content = data.choices[0].message.content;
-        console.log('Content to parse:', content);
+        const content = data.choices[0].message.content.trim();
+        if (!content) {
+            throw new Error(currentLanguage === 'ms' ? 
+                'Respons API kosong' :
+                'Empty API response'
+            );
+        }
 
-        return parseAdCopy(content);
+        // Add validation for parsed content
+        const parsedContent = parseAdCopy(content);
+        if (!parsedContent.headline || !parsedContent.problem || !parsedContent.solution) {
+            console.error('Parsed content validation failed:', parsedContent);
+            throw new Error(currentLanguage === 'ms' ? 
+                'Gagal menghasilkan salinan iklan yang lengkap' :
+                'Failed to generate complete ad copy'
+            );
+        }
+
+        return parsedContent;
+
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('Generation Error:', error);
         
-        // Handle rate limit error specifically
+        // Handle specific error types
         if (error.message === 'RATE_LIMIT') {
             throw new Error(translations[currentLanguage].errors.rateLimit);
         }
         
+        if (error.name === 'AbortError') {
+            throw new Error(currentLanguage === 'ms' ? 
+                'Permintaan tamat masa. Sila cuba lagi.' :
+                'Request timed out. Please try again.'
+            );
+        }
+
+        // For network errors
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            throw new Error(currentLanguage === 'ms' ? 
+                'Ralat rangkaian. Sila periksa sambungan internet anda.' :
+                'Network error. Please check your internet connection.'
+            );
+        }
+
         throw new Error(currentLanguage === 'ms' ? 
             `Gagal menjana salinan iklan: ${error.message}` :
             `Failed to generate ad copy: ${error.message}`
@@ -299,28 +369,39 @@ function parseAdCopy(content) {
             cta: ''
         };
 
-        // Split content into lines and remove empty lines
+        // Split content and remove empty lines
         const lines = content.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 4) {
+            throw new Error(currentLanguage === 'ms' ? 
+                'Kandungan yang dijana terlalu pendek' :
+                'Generated content is too short'
+            );
+        }
+
         let currentSection = null;
 
         for (const line of lines) {
             const lowerLine = line.toLowerCase();
+            
+            // Add debug logging
+            console.log('Processing line:', line);
 
-            // Match both English and Malay headers
-            if (lowerLine.includes('tajuk utama:') || lowerLine.includes('headline:')) {
+            // Match section headers with more flexible patterns
+            if (/(tajuk\s*utama|headline)\s*:/i.test(lowerLine)) {
                 currentSection = 'headline';
-                sections.headline = line.split(/(?:tajuk utama:|headline:)/i)[1]?.trim() || '';
-            } else if (lowerLine.includes('masalah:') || lowerLine.includes('problem:')) {
+                sections.headline = line.split(/:\s*/)[1]?.trim() || '';
+            } else if (/(masalah|problem)\s*:/i.test(lowerLine)) {
                 currentSection = 'problem';
-                sections.problem = line.split(/(?:masalah:|problem:)/i)[1]?.trim() || '';
-            } else if (lowerLine.includes('penyelesaian:') || lowerLine.includes('solution:')) {
+                sections.problem = line.split(/:\s*/)[1]?.trim() || '';
+            } else if (/(penyelesaian|solution)\s*:/i.test(lowerLine)) {
                 currentSection = 'solution';
-                sections.solution = line.split(/(?:penyelesaian:|solution:)/i)[1]?.trim() || '';
-            } else if (lowerLine.includes('faedah:') || lowerLine.includes('benefits:')) {
+                sections.solution = line.split(/:\s*/)[1]?.trim() || '';
+            } else if (/(faedah|benefits)\s*:/i.test(lowerLine)) {
                 currentSection = 'benefits';
-            } else if (lowerLine.includes('tawaran:') || lowerLine.includes('offer:')) {
+            } else if (/(tawaran|offer)\s*:/i.test(lowerLine)) {
                 currentSection = 'offer';
-            } else if (lowerLine.includes('seruan tindakan:') || lowerLine.includes('call to action:')) {
+            } else if (/(seruan tindakan|call to action)\s*:/i.test(lowerLine)) {
                 currentSection = 'cta';
                 const ctaMatch = line.match(/(?:seruan tindakan:|call to action:)(.*)/i);
                 sections.cta = ctaMatch ? ctaMatch[1].trim() : '';
@@ -351,63 +432,21 @@ function parseAdCopy(content) {
             }
         }
 
-        // Provide default values for empty sections based on language
-        if (!sections.cta) {
-            sections.cta = currentLanguage === 'ms' ? 
-                'Hubungi kami sekarang untuk maklumat lanjut!' : 
-                'Contact us now for more information!';
-        }
-
-        // Rest of the function remains the same...
-        if (sections.offer.length === 0) {
-            sections.offer = currentLanguage === 'ms' ? [
-                'Diskaun istimewa untuk pendaftaran awal',
-                'Tawaran terhad',
-                'Jaminan kepuasan'
-            ] : [
-                'Special discount for early birds',
-                'Limited time offer',
-                'Satisfaction guaranteed'
-            ];
-        }
-
-        if (sections.benefits.length === 0) {
-            sections.benefits = currentLanguage === 'ms' ? 
-                ['Tiada faedah khusus disenaraikan'] : 
-                ['No specific benefits listed'];
-        }
-
-        while (sections.offer.length < 3) {
-            sections.offer.push(currentLanguage === 'ms' ? 
-                'Tawaran masa terhad istimewa' : 
-                'Special limited time offer'
+        // Validate parsed content
+        if (!sections.headline || !sections.problem || !sections.solution) {
+            console.error('Invalid parsed sections:', sections);
+            throw new Error(currentLanguage === 'ms' ? 
+                'Format kandungan tidak lengkap' :
+                'Incomplete content format'
             );
         }
 
-        // Ensure all text sections have content
-        if (!sections.headline) {
-            sections.headline = currentLanguage === 'ms' ? 
-                'Tajuk utama tidak disediakan' : 
-                'Headline not provided';
-        }
-        if (!sections.problem) {
-            sections.problem = currentLanguage === 'ms' ? 
-                'Masalah tidak dikenalpasti' : 
-                'Problem not identified';
-        }
-        if (!sections.solution) {
-            sections.solution = currentLanguage === 'ms' ? 
-                'Penyelesaian tidak disediakan' : 
-                'Solution not provided';
-        }
-
-        console.log('Parsed sections:', sections);
         return sections;
     } catch (error) {
         console.error('Parsing Error:', error);
         throw new Error(currentLanguage === 'ms' ? 
-            'Gagal menganalisis kandungan yang dijana' : 
-            'Failed to parse generated content'
+            `Gagal menganalisis kandungan: ${error.message}` :
+            `Failed to parse content: ${error.message}`
         );
     }
 }
@@ -582,4 +621,20 @@ document.addEventListener('DOMContentLoaded', () => {
     generateBtn.disabled = false;
     generateBtn.textContent = translations[currentLanguage].generateBtn;
 });
+
+// Add rate limit reset at midnight
+function setupRateLimitReset() {
+    const now = new Date();
+    const tomorrow = new Date(now.setHours(24,0,0,0));
+    const timeUntilReset = tomorrow - now;
+    
+    setTimeout(() => {
+        RATE_LIMIT.dailyCount = 0;
+        RATE_LIMIT.resetTime = new Date(new Date().setHours(24,0,0,0));
+        setupRateLimitReset(); // Setup next reset
+    }, timeUntilReset);
+}
+
+// Call this when the page loads
+document.addEventListener('DOMContentLoaded', setupRateLimitReset);
  
