@@ -272,7 +272,7 @@ Call to Action: [Add a strong call to action]`;
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.1-405b-instruct:free",
+                model: "google/learnlm-1.5-pro-experimental:free",
                 messages: [{
                     role: "user",
                     content: prompt
