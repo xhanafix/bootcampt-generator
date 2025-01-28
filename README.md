@@ -1,98 +1,117 @@
-# AI Ad Copy Generator 📝
+# Facebook Ads Manager Generator 🚀
 
-A bilingual (English/Bahasa Malaysia) web application that generates compelling ad copy using AI. The application uses the OpenRouter API to generate customized advertising content for any product or service.
+![Facebook Ads Manager Generator](preview.png)
 
-## Features ✨
+An AI-powered Facebook Ads campaign generator that provides data-driven recommendations using OpenRouter API with Google's LearnLM model. Create winning ad campaigns with detailed targeting and strategy insights.
 
-- 🌐 Bilingual support (English and Bahasa Malaysia)
-- 🤖 AI-powered ad copy generation
-- 📋 Easy copy-to-clipboard functionality
-- ⚙️ API key management
-- 🔄 Rate limiting and cooldown system
-- 🎨 Dark mode support
-- 🛡️ Error handling and retry mechanism
+## 🌐 Live Demo
+[Facebook Ads Manager Generator](https://xhanafix.github.io/facebook-ads-manager/)
 
-## Structure 📂
+## ✨ Features
 
-The application consists of three main files:
-- `index.html`: The main HTML structure
-- `styles.css`: CSS styling and dark mode support
-- `script.js`: Application logic and API integration
+### 💡 AI-Powered Recommendations
+- Ad objective optimization
+- Detailed audience targeting
+- Budget allocation strategy
+- Campaign structure guidance
+- A/B testing suggestions
+- Performance tracking metrics
 
-## Setup 🚀
+### 🎯 Advanced Audience Targeting
+- Demographic profiling
+- Interest-based segmentation
+- Behavioral targeting
+- Custom & Lookalike audiences
+- Geographic targeting
+- Language preferences
+- Audience size estimation
 
-1. Clone the repository
-2. Get an API key from [OpenRouter](https://openrouter.ai/keys)
-3. Open `index.html` in a web browser
-4. Click the settings button (⚙️) and enter your API key
-5. Start generating ad copy!
+### 🎨 Modern UI/UX
+- Clean, intuitive interface
+- Dark/Light theme support
+- Real-time progress tracking
+- Mobile-responsive design
+- Interactive progress indicators
+- PDF export functionality
 
-## Usage 💡
+## 🛠️ Built With
+- HTML5
+- CSS3 with CSS Variables
+- Vanilla JavaScript (ES6+)
+- OpenRouter API
+- Google LearnLM Model
+- jsPDF Library
 
-1. Select your preferred language (English/Bahasa Malaysia)
-2. Enter your product or service in the input field
-3. Click "Generate Ad Copy" button
-4. Wait for the AI to generate your ad copy
-5. Use the "Copy All Text" button to copy the generated content
+## 🚀 Getting Started
 
-## Generated Content Structure 📑
+### Prerequisites
+- OpenRouter API key ([Get one here](https://openrouter.ai))
+- Modern web browser
 
-The generator creates ad copy with the following sections:
-- 📢 Headline
-- 😟 Problem
-- ✅ Solution
-- 🎯 Benefits
-- 🎁 Offer
-- 🔥 Call to Action
+### Quick Start
+1. Clone the repository:
+```bash
+git clone https://github.com/xhanafix/facebook-ads-manager.git
+```
 
-## Rate Limiting 🕒
+2. Open `index.html` in your browser
 
-- Minimum interval between requests: 2 seconds
-- Daily limit: 50 requests
-- Automatic reset at midnight
-- Cooldown period after generation
+3. Enter your OpenRouter API key
 
-## Error Handling 🛠️
+4. Start generating ad campaigns!
 
-The application handles various error scenarios:
-- Network errors
-- API rate limiting
-- Timeout issues
-- Invalid API responses
-- Content parsing errors
+## 💻 Usage
 
-## Browser Support 🌐
+1. **Configure API Key**
+   - Enter your OpenRouter API key
+   - Key is securely stored in browser
 
-Works on modern browsers including:
-- Chrome
-- Firefox
-- Safari
-- Edge
+2. **Input Business Details**
+   - Select business type
+   - Describe your product/service
+   - Set advertising goals
+   - Define budget
 
-## Dependencies 📦
+3. **Generate Strategy**
+   - Get AI-powered recommendations
+   - Review targeting suggestions
+   - Export as PDF
 
-- No external libraries required
-- Uses native Browser APIs
-- Requires internet connection for API access
+## 🎨 Customization
 
-## Security Notes 🔒
+- Toggle between light/dark themes
+- Persistent theme preference
+- Mobile-first responsive design
+- Customizable via CSS variables
 
-- API keys are stored in browser's local storage
-- Not recommended for shared computers
-- Consider server-side implementation for production use
+## 🔒 Security
+- Client-side API key storage
+- No server-side data storage
+- Secure API communication
 
-## Contributing 🤝
+## 👨‍💻 Author
 
-Feel free to submit issues and enhancement requests!
+**Hanafi Hassan**
+- Website: [www.hanafihassan.com](https://www.hanafihassan.com)
+- GitHub: [@xhanafix](https://github.com/xhanafix)
 
-## License 📄
+## 📄 License
 
-MIT License - feel free to use and modify for your purposes!
+This project is licensed under the MIT License.
 
-## Credits 👏
+## 🤝 Contributing
 
-Created by [xhanafix](https://github.com/xhanafix)
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For support:
+- Create an issue in this repository
+- Contact: support@hanafihassan.com
 
 ---
-
-For more information or support, please visit the [GitHub repository](https://github.com/xhanafix/ai-ad-copy-generator).
+Made with ❤️ in Malaysia | © 2025 All Rights Reserved | [www.hanafihassan.com](https://www.hanafihassan.com)
